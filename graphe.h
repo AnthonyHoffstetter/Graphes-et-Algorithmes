@@ -7,6 +7,8 @@
 
 class Graphe
 {
+friend class Algorithms;
+
 protected:
     std::vector<int> fs;
     std::vector<int> aps;
