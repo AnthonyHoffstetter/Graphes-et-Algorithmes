@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>576</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item alignment="Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignVCenter">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>La liste des graphes est vide</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuAccueil">
+    <property name="title">
+     <string>Accueil</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuAlgorithmes">
+    <property name="title">
+     <string>Algorithmes</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuOrdonnancement">
+    <property name="title">
+     <string>Ordonnancement</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuGraphes">
+    <property name="title">
+     <string>Graphes</string>
+    </property>
+    <addaction name="actionAjouter_un_graphe"/>
+   </widget>
+   <addaction name="menuAccueil"/>
+   <addaction name="menuGraphes"/>
+   <addaction name="menuAlgorithmes"/>
+   <addaction name="menuOrdonnancement"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionAjouter_un_graphe">
+   <property name="text">
+    <string>Ajouter un graphe</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

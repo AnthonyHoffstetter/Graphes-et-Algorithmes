@@ -19,5 +19,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
+private slots:
+    void on_actionAjouter_un_graphe_triggered();
 };
 #endif // MAINWINDOW_H
