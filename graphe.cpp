@@ -14,27 +14,20 @@ void Graphe::ajouterSommet(){
     aps[0]++;
 }
 
+//NE GERE PAS LE CAS OU IL Y A UN DOUBLON (graphe non orienté)
 void Graphe::ajouterArc(int u, int v) {
     if (u <= 0 || u >= aps.size()) {
         std::cerr << "Erreur : sommet " << u << " inexistant.\n";
         return;
     }
 
-    int start = aps[u];               // début de la liste de u
+    int start = aps[u];
     int i = start;
-
-    // Chercher le 0 de fin
     while (fs[i] != 0 && fs[i]<v) {
         ++i;
     }
-
-    // Insérer v juste avant le 0
     fs.insert(fs.begin() + i, v);
-
-    // Incrémenter fs[0] (nb total d'arcs)
     fs[0]++;
-
-    // Mettre à jour les aps suivants (décalage)
     for (int j = u + 1; j < aps.size(); ++j) {
         aps[j]++;
     }
@@ -59,8 +52,9 @@ void Graphe::afficherFSAPS() const {
     std::cout << "\n";
 }
 
+//A CORRIGER
 std::vector<std::vector<int>> Graphe::toMatriceAdjacence() const{
-    int n = aps[0]; // nombre de sommets
+    int n = aps[0];
     std::vector<std::vector<int>> mat(n, std::vector<int>(n, 0));
 
     for (int u = 1; u <= n; ++u) {
@@ -75,6 +69,7 @@ std::vector<std::vector<int>> Graphe::toMatriceAdjacence() const{
     return mat;
 }
 
+//A CORRIGER
 void Graphe::afficherMatriceAdjacence() const {
     auto mat = toMatriceAdjacence();
     for (const auto& ligne : mat) {
