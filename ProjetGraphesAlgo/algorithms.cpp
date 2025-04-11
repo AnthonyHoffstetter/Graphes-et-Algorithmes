@@ -221,19 +221,14 @@ void Algorithms::analyserCFC(const Graphe& g) {
     std::cout << std::endl;
 }
 
-void Algorithms::articulationEtIsthmes(const Graphe& g) {
-    if (g.estOriente) {
-        std::cout << "L'algorithme des points d'articulation et isthmes s'applique uniquement aux graphes NON orientés.\n";
-        return;
-    }
+void Algorithms::articulationsEtIsthmes(const Graphe& g, std::vector<int>& points, std::vector<std::pair<int, int>>& isthmes) {
+    if (g.estOriente) return;
 
     int n = g.aps[0];
     std::vector<int> num(n + 1, 0), low(n + 1, 0);
-    std::vector<bool> visite(n + 1, false);
     int compteur = 0;
 
     std::vector<bool> articulation(n + 1, false);
-    std::vector<std::pair<int, int>> isthmes;
 
     std::function<void(int, int)> dfs = [&](int u, int parent) {
         compteur++;
@@ -254,7 +249,6 @@ void Algorithms::articulationEtIsthmes(const Graphe& g) {
 
                 if (low[v] > num[u])
                     isthmes.emplace_back(u, v);
-
             } else {
                 low[u] = std::min(low[u], num[v]);
             }
@@ -269,18 +263,11 @@ void Algorithms::articulationEtIsthmes(const Graphe& g) {
             dfs(u, -1);
     }
 
-    std::cout << "\nPoints d'articulation : ";
     for (int i = 1; i <= n; ++i) {
-        if (articulation[i]) std::cout << i << " ";
+        if (articulation[i]) points.push_back(i);
     }
-
-    std::cout << "\nIsthmes : ";
-    for (const auto& pair : isthmes) {
-    std::cout << "(" << pair.first << ", " << pair.second << ") ";
-    }
-
-    std::cout << std::endl;
 }
+
 
 
 

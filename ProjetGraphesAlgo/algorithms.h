@@ -19,7 +19,8 @@ public :
     static void afficherBasesReduit(const std::vector<std::vector<int>>& GR);
     static void analyserCFC(const Graphe& g);
 
-    static void articulationEtIsthmes(const Graphe& g);
+    static void articulationsEtIsthmes(const Graphe& g, std::vector<int>& points, std::vector<std::pair<int, int>>& isthmes);
+
 
 
 

@@ -7,7 +7,9 @@
 
 class Graphe
 {
-friend class Algorithms;
+    friend class MainWindow;
+    friend class AjouterArcsDialog;
+    friend class Algorithms;
 
 protected:
     std::vector<int> fs;

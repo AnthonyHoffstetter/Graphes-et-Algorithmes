@@ -22,9 +22,8 @@ class GrapheValue : public Graphe
 private:
     Sommet* listePrincipale;
 
-    Sommet* trouverSommet(int id) const;
-
 public:
+    Sommet* trouverSommet(int id) const;
     GrapheValue(bool oriente=true);
 
     // Surcharge des méthodes de Graphe

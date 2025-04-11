@@ -9,6 +9,7 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    ajouterarcsdialog.cpp \
     ajoutergraphedialog.cpp \
     algorithms.cpp \
     graphe.cpp \
@@ -17,6 +18,7 @@ SOURCES += \
     mainwindow.cpp
 
 HEADERS += \
+    ajouterarcsdialog.h \
     ajoutergraphedialog.h \
     algorithms.h \
     graphe.h \
@@ -24,6 +26,7 @@ HEADERS += \
     mainwindow.h
 
 FORMS += \
+    ajouterarcsdialog.ui \
     ajoutergraphedialog.ui \
     mainwindow.ui
 
