@@ -1,0 +1,24 @@
+# 1 = Paris
+# 2 = Lyon
+# 3 = Bordeaux
+# 4 = Marseille
+# 5 = Toulouse
+# 6 = Lille
+# 7 = Nantes
+# 8 = Strasbourg
+# 9 = Rennes
+# 10 = Nice
+
+1 2 465
+1 3 584
+1 6 222
+1 8 490
+2 4 315
+2 8 492
+3 5 243
+3 7 329
+4 10 200
+5 9 553
+6 9 629
+7 9 107
+8 6 522
