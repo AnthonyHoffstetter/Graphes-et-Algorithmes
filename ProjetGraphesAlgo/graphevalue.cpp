@@ -99,6 +99,35 @@ void GrapheValue::afficherListeDynamique() const{
 }
 
 void GrapheValue::saisirDepuisFichier(const std::string &nomFichier){
+    std::ifstream fichier(nomFichier);
+    if (!fichier) {
+        std::cerr << "Erreur : impossible d'ouvrir le fichier.\n";
+        return;
+    }
+    std::string ligne;
+
+    aps.clear();
+    fs.clear();
+    aps.push_back(0);
+    fs.push_back(0);
+
+    while (std::getline(fichier, ligne)) {
+        if (ligne.empty() || ligne[0] == '#') continue; // ignorer les commentaires
+
+        std::istringstream iss(ligne);
+        int u,v,p;
+        if (iss >> u >> v >> p){
+            if(aps[0]<std::max(u,v)){
+                while(aps[0]!=std::max(u,v))
+                    ajouterSommet();
+            }
+            ajouterArc(u,v,p);
+        }
+    }
+
+    fichier.close();
+
+
 }
 
 

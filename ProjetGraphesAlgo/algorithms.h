@@ -15,11 +15,17 @@ public :
 
     static void tarjan(const Graphe& g, std::vector<int>& cfc, int& nbCfc);
     static std::vector<std::vector<int>> construireGrapheReduit(const Graphe& g, const std::vector<int>& cfc, int nbCfc);
-    static void afficherGrapheReduit(const std::vector<std::vector<int>>& GR);
-    static void afficherBasesReduit(const std::vector<std::vector<int>>& GR);
-    static void analyserCFC(const Graphe& g);
 
     static void articulationsEtIsthmes(const Graphe& g, std::vector<int>& points, std::vector<std::pair<int, int>>& isthmes);
+
+    static std::vector<int> dijkstra(const GrapheValue& g, int source);
+
+    static std::vector<std::vector<int>> dantzig(const GrapheValue& g);
+
+    static std::vector<std::tuple<int, int, int>> kruskal(const GrapheValue& g);
+
+
+
 
 
 

@@ -96,24 +96,23 @@ bool Algorithms::calculRangs(const Graphe& g, std::vector<int>& rang) {
 // ===== Tarjan =====
 void Algorithms::tarjan(const Graphe& g, std::vector<int>& cfc, int& nbCfc) {
     int n = g.aps[0];
+    cfc.assign(n + 1, 0); // cfc[i] : composante de sommet i
     std::vector<int> num(n + 1, 0), low(n + 1, 0);
     std::vector<bool> enPile(n + 1, false);
     std::stack<int> pile;
-    cfc.assign(n + 1, 0);
 
     int compteur = 0;
     nbCfc = 0;
 
-    std::function<void(int)> strongConnect = [&](int u) {
-        compteur++;
-        num[u] = low[u] = compteur;
+    std::function<void(int)> dfs = [&](int u) {
+        num[u] = low[u] = ++compteur;
         pile.push(u);
         enPile[u] = true;
 
         for (int i = g.aps[u]; g.fs[i] != 0; ++i) {
             int v = g.fs[i];
             if (num[v] == 0) {
-                strongConnect(v);
+                dfs(v);
                 low[u] = std::min(low[u], low[v]);
             } else if (enPile[v]) {
                 low[u] = std::min(low[u], num[v]);
@@ -124,8 +123,7 @@ void Algorithms::tarjan(const Graphe& g, std::vector<int>& cfc, int& nbCfc) {
             nbCfc++;
             int v;
             do {
-                v = pile.top();
-                pile.pop();
+                v = pile.top(); pile.pop();
                 enPile[v] = false;
                 cfc[v] = nbCfc;
             } while (v != u);
@@ -133,13 +131,11 @@ void Algorithms::tarjan(const Graphe& g, std::vector<int>& cfc, int& nbCfc) {
     };
 
     for (int u = 1; u <= n; ++u) {
-        if (num[u] == 0) {
-            strongConnect(u);
-        }
+        if (num[u] == 0)
+            dfs(u);
     }
-
-    std::cout << "Nombre de composantes fortement connexes : " << nbCfc << std::endl;
 }
+
 
 std::vector<std::vector<int>> Algorithms::construireGrapheReduit(const Graphe& g, const std::vector<int>& cfc, int nbCfc) {
     std::vector<std::vector<int>> GR(nbCfc + 1);
@@ -159,66 +155,6 @@ std::vector<std::vector<int>> Algorithms::construireGrapheReduit(const Graphe& g
     }
 
     return GR;
-}
-
-void Algorithms::afficherGrapheReduit(const std::vector<std::vector<int>>& GR) {
-    int nbCfc = GR.size() - 1;
-    std::cout << "Graphe reduit (CFC -> CFC) :\n";
-
-    for (int u = 1; u <= nbCfc; ++u) {
-        std::cout << "CFC " << u << " -> ";
-        if (GR[u].empty()) {
-            std::cout << "(aucun successeur)";
-        } else {
-            for (int v : GR[u]) {
-                std::cout << v << " ";
-            }
-        }
-        std::cout << "\n";
-    }
-}
-
-void Algorithms::afficherBasesReduit(const std::vector<std::vector<int>>& GR) {
-    int nbCfc = GR.size() - 1;
-    std::vector<int> ddi(nbCfc + 1, 0);
-
-    for (int u = 1; u <= nbCfc; ++u) {
-        for (int v : GR[u]) {
-            ddi[v]++;
-        }
-    }
-
-    for (int i = 1; i <= nbCfc; ++i) {
-        if (ddi[i] == 0) {
-            std::cout << i << " ";
-        }
-    }
-}
-
-void Algorithms::analyserCFC(const Graphe& g) {
-    std::vector<int> cfc;
-    int nbCfc = 0;
-
-    std::cout << "Determination des composantes fortement connexes...\n";
-    tarjan(g, cfc, nbCfc);
-
-    std::cout << "\nSommets par composante :\n";
-    for (int i = 1; i <= nbCfc; ++i) {
-        std::cout << "CFC " << i << " : ";
-        for (int j = 1; j < cfc.size(); ++j) {
-            if (cfc[j] == i) std::cout << j << " ";
-        }
-        std::cout << "\n";
-    }
-
-    auto GR = construireGrapheReduit(g, cfc, nbCfc);
-
-    std::cout << "\nGraphe reduit :\n";
-    afficherGrapheReduit(GR);
-
-    std::cout << "\nBases (CFC sans predecesseur) : ";
-    afficherBasesReduit(GR);
-    std::cout << std::endl;
 }
 
 void Algorithms::articulationsEtIsthmes(const Graphe& g, std::vector<int>& points, std::vector<std::pair<int, int>>& isthmes) {
@@ -267,6 +203,154 @@ void Algorithms::articulationsEtIsthmes(const Graphe& g, std::vector<int>& point
         if (articulation[i]) points.push_back(i);
     }
 }
+
+std::vector<int> Algorithms::dijkstra(const GrapheValue& g, int source) {
+    const int INF = INT_MAX;
+    int n = g.aps[0];
+    std::vector<int> dist(n + 1, INF);
+    std::vector<bool> visite(n + 1, false);
+
+    dist[source] = 0;
+
+    for (int i = 1; i <= n; ++i) {
+        // Trouver le sommet non visité avec la plus petite distance
+        int u = -1;
+        int minDist = INF;
+        for (int j = 1; j <= n; ++j) {
+            if (!visite[j] && dist[j] < minDist) {
+                minDist = dist[j];
+                u = j;
+            }
+        }
+
+        if (u == -1) break; // Plus de sommet atteignable
+        visite[u] = true;
+
+        // Parcourir ses successeurs
+        const Sommet* sommetU = g.trouverSommet(u);
+        Successeur* s = sommetU->fileSucesseur;
+        while (s) {
+            int v = s->sommet->id;
+            int poids = s->poids;
+            if (dist[u] != INF && dist[u] + poids < dist[v]) {
+                dist[v] = dist[u] + poids;
+            }
+            s = s->successeurSuivant;
+        }
+    }
+
+    return dist;
+}
+
+std::vector<std::vector<int>> Algorithms::dantzig(const GrapheValue& g) {
+    const int INF = INT_MAX;
+    int n = g.aps[0];
+    std::vector<std::vector<int>> dist(n + 1, std::vector<int>(n + 1, INF));
+
+    // Distance à soi-même = 0
+    for (int i = 1; i <= n; ++i)
+        dist[i][i] = 0;
+
+    // Remplir les poids depuis la liste dynamique
+    for (int u = 1; u <= n; ++u) {
+        const Sommet* sommetU = g.trouverSommet(u);
+        Successeur* s = sommetU->fileSucesseur;
+        while (s) {
+            int v = s->sommet->id;
+            dist[u][v] = s->poids;
+
+            // 🔁 Ajouter l’arc inverse si non orienté
+            if (!g.estOriente)
+                dist[v][u] = s->poids;
+
+            s = s->successeurSuivant;
+        }
+    }
+
+    // Triple boucle de Floyd-Warshall
+    for (int k = 1; k <= n; ++k) {
+        for (int i = 1; i <= n; ++i) {
+            for (int j = 1; j <= n; ++j) {
+                if (dist[i][k] != INF && dist[k][j] != INF)
+                    dist[i][j] = std::min(dist[i][j], dist[i][k] + dist[k][j]);
+            }
+        }
+    }
+
+    // Détection de cycle négatif
+    for (int i = 1; i <= n; ++i) {
+        if (dist[i][i] < 0)
+            throw std::runtime_error("Cycle de poids négatif détecté !");
+    }
+
+    return dist;
+}
+
+std::vector<std::tuple<int, int, int>> Algorithms::kruskal(const GrapheValue& g) {
+    if (g.estOriente) {
+        throw std::runtime_error("Kruskal ne s'applique que sur des graphes non orientés.");
+    }
+
+    int n = g.aps[0];
+    std::vector<std::tuple<int, int, int>> arcs;
+
+    // 1. Récupérer tous les arcs pondérés
+    for (int u = 1; u <= n; ++u) {
+        const Sommet* sommetU = g.trouverSommet(u);
+        Successeur* s = sommetU->fileSucesseur;
+        while (s) {
+            int v = s->sommet->id;
+            int poids = s->poids;
+
+            if (u < v) // éviter les doublons
+                arcs.emplace_back(u, v, poids);
+
+            s = s->successeurSuivant;
+        }
+    }
+
+    // 2. Trier les arcs par poids
+    std::sort(arcs.begin(), arcs.end(), [](auto& a, auto& b) {
+        return std::get<2>(a) < std::get<2>(b); // tri par poids
+    });
+
+    // 3. Initialiser Union-Find
+    std::vector<int> parent(n + 1);
+    for (int i = 1; i <= n; ++i)
+        parent[i] = i;
+
+    auto find = [&](int x) {
+        while (x != parent[x])
+            x = parent[x];
+        return x;
+    };
+
+    auto unite = [&](int x, int y) {
+        int rx = find(x), ry = find(y);
+        if (rx == ry) return false;
+        parent[rx] = ry;
+        return true;
+    };
+
+    // 4. Ajouter les arcs sans créer de cycles
+    std::vector<std::tuple<int, int, int>> arbre;
+
+    for (auto& [u, v, poids] : arcs) {
+        if (unite(u, v)) {
+            arbre.emplace_back(u, v, poids);
+            if (arbre.size() == n - 1) break;
+        }
+    }
+
+    return arbre;
+}
+
+
+
+
+
+
+
 
 
 

@@ -111,6 +111,7 @@ void MainWindow::on_actionAjouter_un_graphe_triggered()
             graphes[nom] = g;
             mettreAJourListeGraphes();
             mettreAJourComboGraphes();
+            mettreAJourComboGrapheAlgo();
         } else {
             delete g;
         }
@@ -237,8 +238,11 @@ void MainWindow::remplirListeAlgorithmes()
     ui->comboAlgo->clear();
     ui->comboAlgo->addItem("Calcul des distances");
     ui->comboAlgo->addItem("Rangs des sommets");
-    ui->comboAlgo->addItem("Tarjan (CFC)");
+    ui->comboAlgo->addItem("Tarjan");
     ui->comboAlgo->addItem("Points d'articulation et isthmes");
+    ui->comboAlgo->addItem("Dijkstra");
+    ui->comboAlgo->addItem("Dantzig");
+    ui->comboAlgo->addItem("Kruskal");
 }
 
 
@@ -269,6 +273,10 @@ void MainWindow::on_buttonLancerAlgo_clicked()
     QString res;
 
     if (algo == "Calcul des distances") {
+        if (dynamic_cast<GrapheValue*>(g)) {
+            res = "Le calcul des distances ne fonctionne que sur des graphes non pondérés.\n";
+        }
+        else{
         std::vector<std::vector<int>> mat = Algorithms::calculerMatriceDistances(*g);
         res = "Matrice des distance :\n\n";
         for (int i = 1; i < mat.size(); ++i) { // ignore la première ligne
@@ -278,56 +286,82 @@ void MainWindow::on_buttonLancerAlgo_clicked()
             }
             res += "\n";
         }
+        }
     }
     else if (algo == "Rangs des sommets") {
         std::vector<int> rangs;
         if (Algorithms::calculRangs(*g, rangs)) {
             res = "Rangs des sommets :\n";
-            for (int i = 0; i < rangs.size(); ++i)
-                res += QString("Sommet %1 : Rang %2\n").arg(i + 1).arg(rangs[i]);
+            for (int i = 1; i < rangs.size(); ++i)
+                res += QString("Sommet %1 : Rang %2\n").arg(i).arg(rangs[i]);
         } else {
             res = "Circuit détecté, pas de rangs.";
         }
     }
-    else if (algo == "Tarjan (CFC)") {
+    else if (algo == "Tarjan") {
+        if(!g->estOriente)
+            res = "Algorithme impossible sur graphe non orienté";
+        else{
         std::vector<int> cfc;
         int nbCfc = 0;
         Algorithms::tarjan(*g, cfc, nbCfc);
-        std::vector<std::vector<int>> GR = Algorithms::construireGrapheReduit(*g, cfc, nbCfc);
 
-        // Ajouter le graphe réduit à la map
+        res = "\nSommets par composante :\n";
+        for (int i = 1; i <= nbCfc; ++i) {
+            res += "CFC " + QString::number(i) + " : ";
+            for (int j = 1; j < cfc.size(); ++j) {
+                if (cfc[j] == i)
+                    res += QString::number(j) + " ";
+            }
+            res += "\n";
+        }
+
+        auto GR = Algorithms::construireGrapheReduit(*g, cfc, nbCfc);
+
+        res += "\nGraphe reduit :\n";
+
+        for (int u = 1; u <= nbCfc; ++u) {
+            res += "CFC " + QString::number(u) + " -> ";
+            if (GR[u].empty()) {
+                res += "(aucun successeur)";
+            } else {
+                for (int v : GR[u]) {
+                    res += QString::number(v) + " ";
+                }
+            }
+            res += "\n";
+        }
+
+        res += "\nBases (CFC sans predecesseur) : ";
+        std::vector<int> ddi(nbCfc + 1, 0);
+
+        for (int u = 1; u <= nbCfc; ++u) {
+            for (int v : GR[u]) {
+                ddi[v]++;
+            }
+        }
+
+        for (int i = 1; i <= nbCfc; ++i) {
+            if (ddi[i] == 0) {
+                res += QString::number(i) + " ";
+            }
+        }
+
+        // Graphe réduit à sauvegarder
         QString nomReduit = nomGraphe + "_reduit";
         Graphe* reduit = new Graphe(g->estOriente);
         for (int i = 1; i <= nbCfc; ++i) reduit->ajouterSommet();
-        for (int u = 0; u < GR.size(); ++u) {
+        for (int u = 1; u <= nbCfc; ++u) {
             for (int v : GR[u]) {
-                reduit->ajouterArc(u + 1, v + 1);
+                reduit->ajouterArc(u, v);
             }
         }
         graphes[nomReduit] = reduit;
+        res += "\n\nGraphe réduit sauvegardé";
         mettreAJourListeGraphes();
         mettreAJourComboGraphes();
-
-        // Affichage du résultat dans le champ texte
-        QString texte;
-        QTextStream stream(&texte);
-        stream << "Graphe réduit ajouté sous le nom : " << nomReduit << "\n";
-        stream << "Graphe réduit :\n";
-        for (int i = 0; i < GR.size(); ++i) {
-            stream << "Composante " << i + 1 << " : ";
-            for (int v : GR[i])
-                stream << v + 1 << " ";
-            stream << "\n";
+        mettreAJourComboGrapheAlgo();
         }
-
-        stream << "\nBases du graphe réduit :\n";
-        for (int i = 0; i < GR.size(); ++i) {
-            if (GR[i].empty()) {
-                stream << "CFC " << i + 1 << "\n";
-            }
-        }
-
-        res = texte;
     }
     else if (algo == "Points d'articulation et isthmes") {
         if(g->estOriente)
@@ -344,6 +378,62 @@ void MainWindow::on_buttonLancerAlgo_clicked()
             res += QString("%1 - %2\n").arg(u).arg(v);
         }
     }
+    else if (algo == "Dijkstra") {
+        GrapheValue* gv = dynamic_cast<GrapheValue*>(g);
+        if (!gv) {
+            res = "Dijkstra s'applique uniquement sur des graphes pondérés.";
+        } else {
+            int source = 1; // par défaut sommet 1
+            std::vector<int> dist = Algorithms::dijkstra(*gv, source);
+            res = "Distances depuis le sommet " + QString::number(source) + " :\n";
+            for (int i = 1; i < dist.size(); ++i) {
+                res += QString("%1 → %2 : %3\n").arg(source).arg(i).arg(
+                    dist[i] == INT_MAX ? "∞" : QString::number(dist[i]));
+            }
+        }
+    }
+    else if (algo == "Dantzig") {
+        GrapheValue* gv = dynamic_cast<GrapheValue*>(g);
+        if (!gv) {
+            res = "Dantzig (Floyd-Warshall) s'applique uniquement sur des graphes pondérés.";
+        } else {
+            try {
+                std::vector<std::vector<int>> mat = Algorithms::dantzig(*gv);
+                res = "Matrice des plus courts chemins (Dantzig) :\n\n";
+                for (int i = 1; i < mat.size(); ++i) {
+                    for (int j = 1; j < mat[i].size(); ++j) {
+                        int d = mat[i][j];
+                        res += (d == INT_MAX ? "∞" : QString::number(d)) + " ";
+                    }
+                    res += "\n";
+                }
+            } catch (const std::runtime_error& e) {
+                res = QString("Erreur : %1").arg(e.what());
+            }
+
+        }
+    }
+    else if (algo == "Kruskal") {
+        GrapheValue* gv = dynamic_cast<GrapheValue*>(g);
+        if (!gv || gv->estOriente) {
+            res = "Kruskal s'applique uniquement sur des graphes non orientés pondérés.";
+        } else {
+            try {
+                auto arbre = Algorithms::kruskal(*gv);
+                int poidsTotal = 0;
+                res = "Arbre recouvrant minimal (Kruskal) :\n\n";
+                for (auto& [u, v, p] : arbre) {
+                    res += QString("%1 - %2 (poids: %3)\n").arg(u).arg(v).arg(p);
+                    poidsTotal += p;
+                }
+                res += QString("\nPoids total : %1").arg(poidsTotal);
+            } catch (const std::exception& e) {
+                res = QString("Erreur : %1").arg(e.what());
+            }
+        }
+    }
+
+
     else {
         res = "Algorithme non pris en charge.";
     }
