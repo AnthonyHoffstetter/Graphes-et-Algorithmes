@@ -23,6 +23,8 @@ public:
     void afficherGraphe(QString nom);
     void mettreAJourComboGrapheAlgo();
     void remplirListeAlgorithmes();
+    void remplirListeAlgorithmes2();
+    void MettreAJourExplications();
 
 
 
@@ -36,5 +38,6 @@ private slots:
     void on_actionAccueil_triggered();
     void on_actionExecuter_un_algorithme_triggered();
     void on_buttonLancerAlgo_clicked();
+    void on_actionExplications_triggered();
 };
 #endif // MAINWINDOW_H

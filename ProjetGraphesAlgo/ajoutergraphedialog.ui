@@ -91,6 +91,19 @@
     <string>Charger depuis un fichier</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="buttonSaisieGraphique">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>120</y>
+     <width>181</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Saisie graphique</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections>

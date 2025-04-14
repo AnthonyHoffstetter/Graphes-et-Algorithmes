@@ -14,6 +14,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     connect(ui->comboGraphesAccueil, &QComboBox::currentTextChanged,
             this, &MainWindow::afficherGraphe);
+    connect(ui->comboAlgo_2, &QComboBox::currentTextChanged,
+            this, &MainWindow::MettreAJourExplications);
 
 
 }
@@ -65,6 +67,9 @@ void MainWindow::on_actionListe_des_graphes_triggered()
 {
     afficherListeGraphes();
 }
+
+
+
 
 void MainWindow::on_actionAccueil_triggered(){
     ui->stackedWidget->setCurrentIndex(0);
@@ -236,6 +241,7 @@ void MainWindow::mettreAJourComboGrapheAlgo()
 void MainWindow::remplirListeAlgorithmes()
 {
     ui->comboAlgo->clear();
+    ui->comboAlgo->addItem("FS et APS");
     ui->comboAlgo->addItem("Calcul des distances");
     ui->comboAlgo->addItem("Rangs des sommets");
     ui->comboAlgo->addItem("Tarjan");
@@ -252,6 +258,85 @@ void MainWindow::on_actionExecuter_un_algorithme_triggered()
     remplirListeAlgorithmes();
     mettreAJourComboGrapheAlgo();
     ui->stackedWidget->setCurrentIndex(2); // adapte l'index
+}
+
+void MainWindow::remplirListeAlgorithmes2()
+{
+    ui->comboAlgo_2->clear();
+    ui->comboAlgo_2->addItem(" ");
+    ui->comboAlgo_2->addItem("Calcul des distances");
+    ui->comboAlgo_2->addItem("Rangs des sommets");
+    ui->comboAlgo_2->addItem("Tarjan");
+    ui->comboAlgo_2->addItem("Points d'articulation et isthmes");
+    ui->comboAlgo_2->addItem("Dijkstra");
+    ui->comboAlgo_2->addItem("Dantzig");
+    ui->comboAlgo_2->addItem("Kruskal");
+}
+
+void MainWindow::MettreAJourExplications() {
+    QString algo = ui->comboAlgo_2->currentText();
+    QString res;
+
+    if (algo == "Calcul des distances") {
+        res = "Le calcul des distances consiste à créer une matrice des distances, "
+              "où chaque case (i, j) contient la longueur minimale du chemin entre le sommet i et le sommet j, "
+              "ou une valeur -1 s’il n’existe aucun chemin.\n\n"
+              "➤ Ce que l'algorithme renvoie :\n"
+              "Une matrice carrée contenant les distances minimales entre tous les couples de sommets.";
+    }
+    else if (algo == "Rangs des sommets") {
+        res = "Le rang d’un sommet est la longueur du plus long chemin (en nombre d’arcs) partant d’un sommet sans prédécesseur (appelé source) jusqu’à ce sommet."
+              " Cet algorithme peut etre utilisé uniquement sur des graphes orientés sans circuit.\n\n"
+              "➤ Ce que l'algorithme renvoie :\n"
+              "Un tableau contenant le rang de chaque sommet.";
+    }
+    else if (algo == "Tarjan") {
+        res = "L’algorithme de Tarjan identifie les composantes fortement connexes dans un graphe orienté, c’est-à-dire des sous-ensembles "
+              "de sommets tels que chaque sommet est accessible depuis n’importe quel autre du même ensemble.\n\n"
+              "➤ Ce que l'algorithme renvoie :\n"
+              "Une liste de composantes fortement connexes (chaque composante est un ensemble de sommets). L'algorithme crée"
+              " également le graphe réduit lorsqu'il est éxécuté.";
+    }
+    else if (algo == "Points d'articulation et isthmes") {
+        res = "Cet algorithme détecte les points d’articulation (sommets critiques) et les isthmes (arêtes critiques) dont la suppression "
+              "entraîne une disconnexion du graphe.\n\n"
+              "➤ Ce que l'algorithme renvoie :\n"
+              "- Une liste des points d’articulation (sommets).\n"
+              "- Une liste des isthmes (arêtes).";
+    }
+    else if (algo == "Dijkstra") {
+        res = "L’algorithme de Dijkstra calcule les plus courts chemins depuis un sommet source vers tous les autres sommets dans un graphe "
+              "valué avec des poids strictement positifs.\n\n"
+              "➤ Ce que l'algorithme renvoie :\n"
+              "- Un tableau de distances depuis la source.\n";
+    }
+    else if (algo == "Dantzig") {
+        res = "L’algorithme de Dantzig (ou Floyd-Warshall) permet de calculer les plus courts chemins entre toutes les paires de sommets "
+              "dans un graphe orienté pondéré, y compris avec des poids négatifs (à condition qu’il n’y ait pas de cycle négatif).\n\n"
+              "➤ Ce que l'algorithme renvoie :\n"
+              "Une matrice des plus courts chemins entre toutes les paires de sommets.";
+    }
+    else if (algo == "Kruskal") {
+        res = "L’algorithme de Kruskal construit un arbre couvrant de poids minimal pour un graphe non orienté pondéré. "
+              "Il choisit les arêtes les plus légères tout en évitant de former des cycles.\n\n"
+              "➤ Ce que l'algorithme renvoie :\n"
+              "- La liste des arêtes de l’arbre couvrant minimal.\n"
+              "- Le poids total de cet arbre.";
+    }
+    else {
+        res = "Sélectionnez un algorithme pour voir son explication.";
+    }
+
+    ui->TextEditExplicationsAlgos->setPlainText(res);
+}
+
+
+
+
+void MainWindow::on_actionExplications_triggered()
+{
+    remplirListeAlgorithmes2();
+    ui->stackedWidget->setCurrentIndex(3); // adapte l'index
 }
 
 
@@ -274,7 +359,7 @@ void MainWindow::on_buttonLancerAlgo_clicked()
 
     if (algo == "Calcul des distances") {
         if (dynamic_cast<GrapheValue*>(g)) {
-            res = "Le calcul des distances ne fonctionne que sur des graphes non pondérés.\n";
+            res = "Le calcul des distances ne fonctionne que sur des graphes non valués.\n";
         }
         else{
         std::vector<std::vector<int>> mat = Algorithms::calculerMatriceDistances(*g);
@@ -288,14 +373,26 @@ void MainWindow::on_buttonLancerAlgo_clicked()
         }
         }
     }
+    else if (algo == "FS et APS") {
+        res = "APS :\n";
+        for (int i = 1; i < g->aps.size(); ++i)
+            res += QString("%1 ").arg(g->aps[i]);
+        res += "\n\nFS :\n";
+        for (int i = 1; i < g->fs.size(); ++i)
+            res += QString("%1 ").arg(g->fs[i]);
+    }
     else if (algo == "Rangs des sommets") {
-        std::vector<int> rangs;
-        if (Algorithms::calculRangs(*g, rangs)) {
-            res = "Rangs des sommets :\n";
-            for (int i = 1; i < rangs.size(); ++i)
-                res += QString("Sommet %1 : Rang %2\n").arg(i).arg(rangs[i]);
-        } else {
-            res = "Circuit détecté, pas de rangs.";
+        if(!g->estOriente)
+            res = "Algorithme impossible sur graphe non orienté";
+        else{
+            std::vector<int> rangs;
+            if (Algorithms::calculRangs(*g, rangs)) {
+                res = "Rangs des sommets :\n";
+                for (int i = 1; i < rangs.size(); ++i)
+                    res += QString("Sommet %1 : Rang %2\n").arg(i).arg(rangs[i]);
+            } else {
+                res = "Circuit détecté, pas de rangs.";
+            }
         }
     }
     else if (algo == "Tarjan") {
