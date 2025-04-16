@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "dialogordonnancement.h"
 #include "graphevalue.h"
 #include "ui_mainwindow.h"
 #include "ajoutergraphedialog.h"
@@ -6,6 +7,7 @@
 #include <QMessageBox>
 #include <QGraphicsTextItem>
 #include "algorithms.h"
+#include <QQueue>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -13,7 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     connect(ui->comboGraphesAccueil, &QComboBox::currentTextChanged,
-            this, &MainWindow::afficherGraphe);
+            this, &MainWindow::afficherGrapheAccueil);
     connect(ui->comboAlgo_2, &QComboBox::currentTextChanged,
             this, &MainWindow::MettreAJourExplications);
 
@@ -48,6 +50,12 @@ void MainWindow::mettreAJourListeGraphes()
     }
 }
 
+void MainWindow::afficherGrapheAccueil(QString nom)
+{
+    afficherGraphe(nom, ui->graphicsView);
+}
+
+
 void MainWindow::mettreAJourComboGraphes()
 {
     ui->comboGraphesAccueil->clear();
@@ -60,7 +68,7 @@ void MainWindow::mettreAJourComboGraphes()
 void MainWindow::afficherListeGraphes()
 {
     mettreAJourListeGraphes();
-    ui->stackedWidget->setCurrentIndex(1); // Page 1 = liste des graphes
+    ui->stackedWidget->setCurrentIndex(1);
 }
 
 void MainWindow::on_actionListe_des_graphes_triggered()
@@ -75,6 +83,210 @@ void MainWindow::on_actionAccueil_triggered(){
     ui->stackedWidget->setCurrentIndex(0);
     mettreAJourComboGraphes();
 }
+
+void MainWindow::on_actionOrdonnancement_triggered(){
+    ui->stackedWidget->setCurrentIndex(4);
+}
+
+void MainWindow::trouverCheminsCritiques(GrapheValue& g, int courant, int fin, QMap<int, int>& marges,
+                             QList<int>& cheminActuel, int dureeActuelle, QList<QPair<QString, int>>& chemins) {
+    if (marges[courant] != 0) return;
+
+    cheminActuel.append(courant);
+
+    if (courant == fin) {
+        QString cheminStr;
+        for (int i = 0; i < cheminActuel.size(); ++i) {
+            if (i > 0) cheminStr += " → ";
+            cheminStr += QString::number(cheminActuel[i]);
+        }
+        chemins.append({cheminStr, dureeActuelle});
+    } else {
+        Sommet* s = g.trouverSommet(courant);
+        for (Successeur* succ = s->fileSucesseur; succ; succ = succ->successeurSuivant) {
+            int suivant = succ->sommet->id;
+            if (marges[suivant] == 0)
+                trouverCheminsCritiques(g, suivant, fin, marges, cheminActuel, dureeActuelle + succ->poids, chemins);
+        }
+    }
+
+    cheminActuel.removeLast();
+}
+
+void MainWindow::on_buttonOrdonnancementStart_clicked() {
+    DialogOrdonnancement dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        QList<Tache> taches = dialog.getListeTaches();
+
+        int nbTaches = taches.size();
+        GrapheValue g;
+
+        for(int i = 0; i < nbTaches + 2; ++i){
+            g.ajouterSommet();
+        }
+
+        int id_DT = 1;
+        int id_FT = nbTaches + 2;
+
+        // Étape 1 : relier DT aux tâches sans prédécesseurs
+        for (int i = 0; i < nbTaches; ++i) {
+            if (taches[i].precedents.isEmpty()) {
+                g.ajouterArc(id_DT, i + 2, 0); // i+2 = ID de la tâche i
+
+            }
+        }
+
+        // Étape 2 : relier les tâches entre elles
+        for (int i = 0; i < nbTaches; ++i) {
+            for (int pred : taches[i].precedents) {
+                g.ajouterArc(pred + 2, i + 2, taches[pred].duree);
+
+            }
+        }
+
+        // Étape 3 : relier les tâches sans successeurs à FT
+        QSet<int> tachesAvecSuccesseurs;
+        for (int i = 0; i < nbTaches; ++i) {
+            for (int pred : taches[i].precedents) {
+                tachesAvecSuccesseurs.insert(pred);
+            }
+        }
+        for (int i = 0; i < nbTaches; ++i) {
+            if (!tachesAvecSuccesseurs.contains(i)) {
+                g.ajouterArc(i + 2, id_FT, taches[i].duree);
+
+            }
+        }
+
+
+        // Étape 4 : Sauvegarder dans listeDeGraphe
+        graphes["Ordonnancement"] = new GrapheValue(g);
+
+
+        // Étape 5 : Affichage du graphe dans graphicsView
+        afficherGraphe("Ordonnancement",ui->graphicsView_Ordonnancement);
+
+        // Étape 6 : Affichage de la liste des tâches à droite
+        ui->listWidgetTachesetId->clear();
+        ui->listWidgetTachesetId->addItem("1 - DT");
+        for (int i = 0; i < taches.size(); ++i)
+            ui->listWidgetTachesetId->addItem(QString::number(i + 2) + " - " + taches[i].nom); // ✅ i+2
+        ui->listWidgetTachesetId->addItem(QString::number(id_FT) + " - FT");
+
+        // Étape 7 : Ordonnancement
+
+        int n = g.aps[0];
+        QVector<int> dateTot(n + 1, 0);
+        QVector<int> dateTard(n + 1, 0);
+        QMap<int, int> marges;
+        for (int i = 1; i <= n; ++i)
+            marges[i] = dateTard[i] - dateTot[i];
+
+        QVector<int> degreEntrant(n + 1, 0);
+        QVector<int> ordreTopo;
+
+        // === Étape 7.1 : calcul des degrés entrants
+        for (int u = 1; u <= n; ++u) {
+            Sommet* sommet = g.trouverSommet(u);
+            if (!sommet) continue;
+
+            for (Successeur* succ = sommet->fileSucesseur; succ != nullptr; succ = succ->successeurSuivant) {
+                int v = succ->sommet->id;
+                degreEntrant[v]++;
+            }
+        }
+
+        // === Étape 7.2 : tri
+        QQueue<int> file;
+        for (int i = 1; i <= n; ++i)
+            if (degreEntrant[i] == 0)
+                file.enqueue(i);
+
+        while (!file.isEmpty()) {
+            int u = file.dequeue();
+            ordreTopo.append(u);
+
+            Sommet* sommet = g.trouverSommet(u);
+            if (!sommet) continue;
+
+            for (Successeur* succ = sommet->fileSucesseur; succ != nullptr; succ = succ->successeurSuivant) {
+                int v = succ->sommet->id;
+                int poids = succ->poids;
+
+                degreEntrant[v]--;
+                if (degreEntrant[v] == 0)
+                    file.enqueue(v);
+
+                dateTot[v] = std::max(dateTot[v], dateTot[u] + poids);
+            }
+        }
+
+        // === Étape 7.3 : dates au plus tard
+        dateTard[id_FT] = dateTot[id_FT];
+        for (int i = ordreTopo.size() - 1; i >= 0; --i) {
+            int u = ordreTopo[i];
+            if (u == id_FT) continue;
+
+            Sommet* sommet = g.trouverSommet(u);
+            if (!sommet) continue;
+
+            int minTard = INT_MAX;
+            for (Successeur* succ = sommet->fileSucesseur; succ != nullptr; succ = succ->successeurSuivant) {
+                int v = succ->sommet->id;
+                int poids = succ->poids;
+
+                minTard = std::min(minTard, dateTard[v] - poids);
+            }
+
+            dateTard[u] = (minTard == INT_MAX) ? dateTot[u] : minTard;
+        }
+
+        QList<QPair<QString, int>> cheminsCritiques;
+        QList<int> cheminActuel;
+        trouverCheminsCritiques(g, id_DT, id_FT, marges, cheminActuel, 0, cheminsCritiques);
+
+        // Garde uniquement ceux avec durée max
+        int dureeMax = dateTot[id_FT];
+        QList<QString> cheminsFinal;
+
+        for (auto pair : cheminsCritiques) {
+            if (pair.second == dureeMax)
+                cheminsFinal.append(pair.first);
+        }
+
+        // Convertir les cheminsFinal en noms
+        QStringList cheminsConvertis;
+        for (const QString& chemin : cheminsFinal) {
+            QStringList ids = chemin.split(" → ");
+            QStringList noms;
+
+            for (const QString& idStr : ids) {
+                int id = idStr.toInt();
+
+                if (id == 1)
+                    noms << "DT";
+                else if (id == taches.size() + 2)
+                    noms << "FT";
+                else
+                    noms << taches[id - 2].nom;
+            }
+
+            cheminsConvertis << "Chemin critique : " + noms.join(" → ");
+        }
+
+        QString resultat = cheminsConvertis.join("\n\n");
+        resultat += QString("\n\nDurée totale : %1").arg(dureeMax);
+
+        ui->TextEditOrdonnancementResultat->setPlainText(resultat);
+
+
+        mettreAJourListeGraphes();
+        mettreAJourComboGraphes();
+        mettreAJourComboGrapheAlgo();
+    }
+}
+
+
 
 
 
@@ -126,7 +338,7 @@ void MainWindow::on_actionAjouter_un_graphe_triggered()
 
 
 
-void MainWindow::afficherGraphe(QString nom)
+void MainWindow::afficherGraphe(QString nom,QGraphicsView *vue)
 {
     if (graphes.find(nom) == graphes.end()) return;
 
@@ -227,7 +439,8 @@ void MainWindow::afficherGraphe(QString nom)
         }
     }
 
-    ui->graphicsView->setScene(scene);
+    vue->setScene(scene);
+
 }
 
 void MainWindow::mettreAJourComboGrapheAlgo()
@@ -481,7 +694,9 @@ void MainWindow::on_buttonLancerAlgo_clicked()
             res = "Dijkstra s'applique uniquement sur des graphes pondérés.";
         } else {
             int source = 1; // par défaut sommet 1
-            std::vector<int> dist = Algorithms::dijkstra(*gv, source);
+            std::vector<int> pred;
+            std::vector<int> dist = Algorithms::dijkstra(*gv, source, pred);
+
             res = "Distances depuis le sommet " + QString::number(source) + " :\n";
             for (int i = 1; i < dist.size(); ++i) {
                 res += QString("%1 → %2 : %3\n").arg(source).arg(i).arg(

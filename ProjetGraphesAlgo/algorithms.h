@@ -4,7 +4,7 @@
 #include "graphe.h"
 #include "graphevalue.h"
 #include <vector>
-#include <string>
+#include <Qstring>
 
 class Algorithms{
 public :
@@ -18,11 +18,12 @@ public :
 
     static void articulationsEtIsthmes(const Graphe& g, std::vector<int>& points, std::vector<std::pair<int, int>>& isthmes);
 
-    static std::vector<int> dijkstra(const GrapheValue& g, int source);
+    static std::vector<int> dijkstra(const GrapheValue& g, int source, std::vector<int>& pred);
 
     static std::vector<std::vector<int>> dantzig(const GrapheValue& g);
 
     static std::vector<std::tuple<int, int, int>> kruskal(const GrapheValue& g);
+
 
 
 

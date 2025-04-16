@@ -12,6 +12,8 @@ SOURCES += \
     ajouterarcsdialog.cpp \
     ajoutergraphedialog.cpp \
     algorithms.cpp \
+    dialogordonnancement.cpp \
+    dialogtachesprecedentes.cpp \
     graphe.cpp \
     graphevalue.cpp \
     main.cpp \
@@ -21,6 +23,8 @@ HEADERS += \
     ajouterarcsdialog.h \
     ajoutergraphedialog.h \
     algorithms.h \
+    dialogordonnancement.h \
+    dialogtachesprecedentes.h \
     graphe.h \
     graphevalue.h \
     mainwindow.h
@@ -28,6 +32,8 @@ HEADERS += \
 FORMS += \
     ajouterarcsdialog.ui \
     ajoutergraphedialog.ui \
+    dialogordonnancement.ui \
+    dialogtachesprecedentes.ui \
     mainwindow.ui
 
 # Default rules for deployment.

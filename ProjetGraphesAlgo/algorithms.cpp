@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stack>
 #include <functional>
+#include <QVector>
 
 std::vector<int> Algorithms::bfs(const Graphe& g, int s) {
     int n = g.aps[0];
@@ -204,11 +205,13 @@ void Algorithms::articulationsEtIsthmes(const Graphe& g, std::vector<int>& point
     }
 }
 
-std::vector<int> Algorithms::dijkstra(const GrapheValue& g, int source) {
+std::vector<int> Algorithms::dijkstra(const GrapheValue& g, int source, std::vector<int>& pred) {
     const int INF = INT_MAX;
     int n = g.aps[0];
+
     std::vector<int> dist(n + 1, INF);
     std::vector<bool> visite(n + 1, false);
+    pred.resize(n + 1, -1); // 🔁 Pour reconstruire le chemin plus tard
 
     dist[source] = 0;
 
@@ -223,18 +226,21 @@ std::vector<int> Algorithms::dijkstra(const GrapheValue& g, int source) {
             }
         }
 
-        if (u == -1) break; // Plus de sommet atteignable
+        if (u == -1) break;
         visite[u] = true;
 
         // Parcourir ses successeurs
         const Sommet* sommetU = g.trouverSommet(u);
-        Successeur* s = sommetU->fileSucesseur;
+        Successeur* s = sommetU ? sommetU->fileSucesseur : nullptr;
         while (s) {
             int v = s->sommet->id;
             int poids = s->poids;
+
             if (dist[u] != INF && dist[u] + poids < dist[v]) {
                 dist[v] = dist[u] + poids;
+                pred[v] = u; // ✅ mise à jour du prédécesseur
             }
+
             s = s->successeurSuivant;
         }
     }
@@ -344,14 +350,4 @@ std::vector<std::tuple<int, int, int>> Algorithms::kruskal(const GrapheValue& g)
 
     return arbre;
 }
-
-
-
-
-
-
-
-
-
-
 
