@@ -38,6 +38,8 @@ void DialogOrdonnancement::on_buttonAddTache_clicked() {
 
     listeTaches.append(t);
     ajouterTacheDansTable(t);
+    ui->lineEditTacheNom->clear();
+    ui->spinBoxDuree->setValue(0);
 }
 
 QList<Tache> DialogOrdonnancement::getListeTaches() const {
@@ -51,20 +53,17 @@ void DialogOrdonnancement::ajouterTacheDansTable(const Tache& tache)
     int row = ui->listTaches->rowCount();
     ui->listTaches->insertRow(row);
 
-    // Colonne 0 : numéro de la tâche
-    ui->listTaches->setItem(row, 0, new QTableWidgetItem(QString::number(row)));
+    // Colonne 0 : nom
+    ui->listTaches->setItem(row, 0, new QTableWidgetItem(tache.nom));
 
-    // Colonne 1 : nom
-    ui->listTaches->setItem(row, 1, new QTableWidgetItem(tache.nom));
+    // Colonne 1 : durée
+    ui->listTaches->setItem(row, 1, new QTableWidgetItem(QString::number(tache.duree)));
 
-    // Colonne 2 : durée
-    ui->listTaches->setItem(row, 2, new QTableWidgetItem(QString::number(tache.duree)));
-
-    // Colonne 3 : indices des tâches précédentes (affichés comme chaîne)
+    // Colonne 2 : indices des tâches précédentes (affichés comme chaîne)
     QStringList precedentsStr;
     for (int indice : tache.precedents)
         precedentsStr << QString::number(indice);
 
-    ui->listTaches->setItem(row, 3, new QTableWidgetItem(precedentsStr.join(", ")));
+    ui->listTaches->setItem(row, 2, new QTableWidgetItem(precedentsStr.join(", ")));
 }
 

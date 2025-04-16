@@ -40,11 +40,6 @@
    </property>
    <column>
     <property name="text">
-     <string>N°</string>
-    </property>
-   </column>
-   <column>
-    <property name="text">
      <string>Nom</string>
     </property>
    </column>
