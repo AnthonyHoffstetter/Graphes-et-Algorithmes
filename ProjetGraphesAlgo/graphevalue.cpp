@@ -8,7 +8,6 @@ GrapheValue::GrapheValue(bool oriente) : Graphe(oriente),listePrincipale{nullptr
 void GrapheValue::ajouterSommet() {
     int nouvelId = 1;
 
-    // Cherche le dernier id pour l’incrémenter
     Sommet* courant = listePrincipale;
     while (courant && courant->sommetSuivant) {
         courant = courant->sommetSuivant;

@@ -12,7 +12,7 @@ AjouterArcsDialog::AjouterArcsDialog(Graphe* graphe, QWidget *parent) :
     ui->setupUi(this);
     if (dynamic_cast<GrapheValue*>(g)) {
         ui->spinBoxPoids->show();
-        ui->labelPoids->show(); // si tu as un QLabel associé au poids
+        ui->labelPoids->show();
     } else {
         ui->spinBoxPoids->hide();
         ui->labelPoids->hide();
@@ -70,7 +70,6 @@ void AjouterArcsDialog::on_BouttonAjouterArc_clicked()
         return;
     }
 
-    // Si le graphe est pondéré → cast dynamique
     if (auto gv = dynamic_cast<GrapheValue*>(g)) {
         int p = getPoids();
         gv->ajouterArc(u, v, p);

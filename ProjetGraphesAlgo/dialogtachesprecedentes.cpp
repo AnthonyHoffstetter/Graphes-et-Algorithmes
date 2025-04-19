@@ -10,7 +10,7 @@ DialogTachesPrecedentes::DialogTachesPrecedentes(const QList<Tache> &tachesExist
 
     for (int i = 0; i < tachesExistantes.size(); ++i) {
         QListWidgetItem* item = new QListWidgetItem(tachesExistantes[i].nom);
-        item->setData(Qt::UserRole, i); // on stocke l'indice
+        item->setData(Qt::UserRole, i);
         item->setCheckState(Qt::Unchecked);
         ui->listTachesAnterieures->addItem(item);
     }

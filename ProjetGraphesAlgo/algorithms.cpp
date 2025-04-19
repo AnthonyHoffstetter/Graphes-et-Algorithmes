@@ -211,7 +211,7 @@ std::vector<int> Algorithms::dijkstra(const GrapheValue& g, int source, std::vec
 
     std::vector<int> dist(n + 1, INF);
     std::vector<bool> visite(n + 1, false);
-    pred.resize(n + 1, -1); // 🔁 Pour reconstruire le chemin plus tard
+    pred.resize(n + 1, -1);
 
     dist[source] = 0;
 
@@ -238,7 +238,7 @@ std::vector<int> Algorithms::dijkstra(const GrapheValue& g, int source, std::vec
 
             if (dist[u] != INF && dist[u] + poids < dist[v]) {
                 dist[v] = dist[u] + poids;
-                pred[v] = u; // ✅ mise à jour du prédécesseur
+                pred[v] = u;
             }
 
             s = s->successeurSuivant;
@@ -265,7 +265,7 @@ std::vector<std::vector<int>> Algorithms::dantzig(const GrapheValue& g) {
             int v = s->sommet->id;
             dist[u][v] = s->poids;
 
-            // 🔁 Ajouter l’arc inverse si non orienté
+            // Ajouter l’arc inverse si non orienté
             if (!g.estOriente)
                 dist[v][u] = s->poids;
 
@@ -273,7 +273,6 @@ std::vector<std::vector<int>> Algorithms::dantzig(const GrapheValue& g) {
         }
     }
 
-    // Triple boucle de Floyd-Warshall
     for (int k = 1; k <= n; ++k) {
         for (int i = 1; i <= n; ++i) {
             for (int j = 1; j <= n; ++j) {

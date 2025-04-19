@@ -34,7 +34,7 @@ void AjouterGrapheDialog::on_buttonChargerDepuisFichier_clicked()
     if (!chemin.isEmpty()) {
         aChargeDepuisFichier = true;
         cheminFichier = chemin;
-        accept(); // Ferme la fenêtre directement si on charge
+        accept();
     }
 }
 

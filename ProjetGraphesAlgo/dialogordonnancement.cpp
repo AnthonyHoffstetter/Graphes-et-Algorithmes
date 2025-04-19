@@ -20,19 +20,19 @@ void DialogOrdonnancement::on_buttonAddTache_clicked() {
 
     if (nom.isEmpty()) return;
 
-    Tache t; // Déclaration hors des blocs
+    Tache t;
 
     t.nom = nom;
     t.duree = duree;
 
     if (listeTaches.count() == 0) {
-        t.precedents = QList<int>{}; // Pas de précédents
+        t.precedents = QList<int>{};
     } else {
         DialogTachesPrecedentes dp(listeTaches, this);
         if (dp.exec() == QDialog::Accepted) {
             t.precedents = dp.getTachesPrecedentes();
         } else {
-            return; // si l'utilisateur annule, on ne fait rien
+            return;
         }
     }
 
@@ -59,7 +59,7 @@ void DialogOrdonnancement::ajouterTacheDansTable(const Tache& tache)
     // Colonne 1 : durée
     ui->listTaches->setItem(row, 1, new QTableWidgetItem(QString::number(tache.duree)));
 
-    // Colonne 2 : indices des tâches précédentes (affichés comme chaîne)
+    // Colonne 2 : indices des tâches précédentes
     QStringList precedentsStr;
     for (int indice : tache.precedents)
         precedentsStr << QString::number(indice);
