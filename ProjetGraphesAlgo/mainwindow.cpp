@@ -8,6 +8,8 @@
 #include <QGraphicsTextItem>
 #include "algorithms.h"
 #include <QQueue>
+#include <QFileDialog>
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -18,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::afficherGrapheAccueil);
     connect(ui->comboAlgo_2, &QComboBox::currentTextChanged,
             this, &MainWindow::MettreAJourExplications);
+    mettreAJourComboGraphes();
 
 
 }
@@ -50,6 +53,25 @@ void MainWindow::mettreAJourListeGraphes()
     }
 }
 
+void MainWindow::on_buttonSauvegarderGraphe_clicked()
+{
+    QString nomGraphe = ui->comboGrapheAlgo->currentText();
+
+    if (graphes.find(nomGraphe) == graphes.end()) {
+        QMessageBox::warning(this, "Erreur", "Aucun graphe sélectionné.");
+        return;
+    }
+
+    QString chemin = QFileDialog::getSaveFileName(this, "Enregistrer le graphe", nomGraphe + ".txt", "Fichiers texte (*.txt)");
+    if (chemin.isEmpty()) return;
+
+    Graphe* g = graphes[nomGraphe];
+    g->sauvegarderDansFichier(chemin.toStdString());
+
+    QMessageBox::information(this, "Succès", "Graphe sauvegardé !");
+}
+
+
 void MainWindow::afficherGrapheAccueil(QString nom)
 {
     afficherGraphe(nom, ui->graphicsView);
@@ -62,6 +84,9 @@ void MainWindow::mettreAJourComboGraphes()
     for (const auto& [nom, _] : graphes) {
         ui->comboGraphesAccueil->addItem(nom);
     }
+
+    bool vide = graphes.empty();
+    ui->buttonSauvegarderGraphe->setVisible(!vide);
 }
 
 

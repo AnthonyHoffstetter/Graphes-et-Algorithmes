@@ -47,5 +47,6 @@ private slots:
     void on_actionExplications_triggered();
     void on_actionOrdonnancement_triggered();
     void on_buttonOrdonnancementStart_clicked();
+    void on_buttonSauvegarderGraphe_clicked();
 };
 #endif // MAINWINDOW_H
