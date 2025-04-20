@@ -323,6 +323,12 @@ void MainWindow::on_actionAjouter_un_graphe_triggered()
     if (dialog.exec() == QDialog::Accepted) {
 
         QString nom = dialog.getNom();
+
+        if (nom.trimmed().isEmpty()) {
+            QMessageBox::warning(this, "Erreur", "Veuillez saisir un nom pour le graphe.");
+            return;
+        }
+
         bool oriente = dialog.estOriente();
         bool value = dialog.estValue();
 
